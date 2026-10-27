@@ -1,0 +1,156 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RMA Analyzer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/brython/3.12.4/brython.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/brython/3.12.4/brython_stdlib.min.js"></script>
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 32px 20px;
+            background: #F8FAFC;
+            color: #334155;
+            font-family: Arial, sans-serif;
+            line-height: 1.5;
+        }
+
+        h1 { margin: 0 0 28px; color: #1E293B; font-size: 1.8rem; font-weight: 700; }
+        h2 { margin: 0 0 20px; color: #334155; font-size: 1.1rem; font-weight: 600; }
+
+        .panel {
+            margin-bottom: 20px;
+            padding: 24px;
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            border-radius: 12px;
+        }
+
+        .input-row { display: flex; align-items: flex-end; gap: 12px; }
+
+        .field { display: flex; flex: 1; min-width: 0; flex-direction: column; gap: 7px; }
+
+        label { color: #64748B; font-size: 0.875rem; font-weight: 500; }
+
+        input {
+            width: 100%;
+            min-width: 0;
+            padding: 10px 12px;
+            border: 1px solid #CBD5E1;
+            border-radius: 7px;
+            background: #FFFFFF;
+            color: #334155;
+            font-size: 0.95rem;
+        }
+
+        input::placeholder { color: #94A3B8; }
+        input:focus { border-color: #3B82F6; outline: 2px solid #DBEAFE; outline-offset: 1px; }
+
+        button {
+            padding: 10px 16px;
+            border: 1px solid #2563EB;
+            border-radius: 7px;
+            background: #2563EB;
+            color: #FFFFFF;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        button:hover { background: #1D4ED8; }
+        button:focus-visible { outline: 2px solid #93C5FD; outline-offset: 2px; }
+
+        .tasks-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
+        .tasks-header h2 { margin: 0; }
+
+        .button-clear { padding: 7px 11px; border-color: #CBD5E1; background: #FFFFFF; color: #475569; font-size: 0.85rem; }
+        .button-clear:hover { background: #F1F5F9; }
+
+        .task {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            align-items: center;
+            gap: 16px;
+            padding: 14px 16px;
+            border: 1px solid #E2E8F0;
+            border-radius: 8px;
+            background: #FFFFFF;
+        }
+
+        .task + .task { margin-top: 8px; }
+        .task-column, .task-info { min-width: 0; }
+        .task-name { color: #334155; font-size: 0.95rem; font-weight: 600; }
+        .task-subtitle { margin-top: 3px; color: #94A3B8; font-size: 0.8rem; }
+        .value-number { color: #475569; font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+
+        .task-header { padding: 0 16px 10px; border: none; background: transparent; color: #64748B; font-size: 0.8rem; font-weight: 600; }
+
+        .metric { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 13px 0; border-bottom: 1px solid #E2E8F0; }
+        .metric-label { color: #64748B; font-size: 0.9rem; }
+        .metric-value { color: #1E293B; font-size: 1.05rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+        .status { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 16px; padding: 12px 14px; border-radius: 7px; font-size: 0.9rem; font-weight: 600; }
+        .status-pass { background: #F0FDF4; color: #15803D; }
+        .status-fail { background: #FEF2F2; color: #B91C1C; }
+        .empty { padding: 16px 0; color: #94A3B8; font-size: 0.9rem; }
+
+        @media (max-width: 520px) {
+            body { padding: 20px 12px; }
+            h1 { font-size: 1.55rem; }
+            .panel { padding: 16px; }
+            .input-row { flex-wrap: wrap; }
+            .field { flex-basis: calc(50% - 6px); }
+            .input-row button { width: 100%; }
+            .task { grid-template-columns: 0.8fr 1.2fr 1.2fr; gap: 8px; padding: 12px 8px; }
+            .task-header { padding: 0 8px 10px; font-size: 0.7rem; }
+            .task-name { font-size: 0.85rem; }
+            .task-subtitle { font-size: 0.7rem; }
+            .value-number { font-size: 0.8rem; }
+            .metric-label { font-size: 0.85rem; }
+            .metric-value { font-size: 0.95rem; }
+        }
+    </style>
+</head>
+<body onload="brython()">
+    <h1>RMA Analyzer</h1>
+
+    <section class="panel">
+        <h2>Add Task</h2>
+        <div class="input-row">
+            <div class="field">
+                <label for="execution">Execution Time (ms)</label>
+                <input id="execution" type="number" min="0.001" step="any" placeholder="e.g. 1.5">
+            </div>
+            <div class="field">
+                <label for="period">Period (ms)</label>
+                <input id="period" type="number" min="0.001" step="any" placeholder="e.g. 10">
+            </div>
+            <button id="add" type="button">Add Task</button>
+        </div>
+    </section>
+
+    <section class="panel">
+        <h2>RMA Analysis</h2>
+        <div id="result">
+            <div class="empty">Add a task to begin analysis.</div>
+        </div>
+    </section>
+
+    <section class="panel">
+        <div class="tasks-header">
+            <h2>Tasks</h2>
+            <button id="clear" type="button" class="button-clear">Clear All</button>
+        </div>
+        <div id="tasks">
+            <div class="empty">No tasks added yet.</div>
+        </div>
+    </section>
+
+    <script type="text/python" src="main.py"></script>
+</body>
+</html>
