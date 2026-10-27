@@ -10,9 +10,9 @@ Total CPU utilization:\
 $$U = \sum_{i=1}^{n} \frac{C_i}{T_i}$$
 
 where:
-- \(C_i\): Execution time of task \(i\)
-- \(T_i\): Period of task \(i\)
-- \(n\): Number of tasks
+- $C_i$: Execution time of task $i$
+- $T_i$: Period of task $i$
+- $n$: Number of tasks
 
 ## Sufficient Schedulability Test
 
